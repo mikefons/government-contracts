@@ -1,0 +1,60 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: chancery
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: chancery
+    volumes:
+      - chancery-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chancery"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build: ./backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg2://chancery:${POSTGRES_PASSWORD}@db:5432/chancery
+      SECRET_KEY: ${SECRET_KEY:?set SECRET_KEY in .env}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@chancery.local}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD in .env}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080}
+      RUN_CREATE_ALL: "false"
+      ENABLE_SCHEDULER: ${ENABLE_SCHEDULER:-false}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OLLAMA_HOST: ${OLLAMA_HOST:-}
+      GRAPH_BACKEND: ${GRAPH_BACKEND:-memory}
+      ARANGO_URL: http://arango:8529
+      ARANGO_DB: chancery
+      ARANGO_USER: root
+      ARANGO_PASSWORD: ${ARANGO_PASSWORD:-}
+    expose:
+      - "8000"
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+
+  arango:
+    image: arangodb:3.12
+    profiles: ["arango"]
+    environment:
+      ARANGO_ROOT_PASSWORD: ${ARANGO_PASSWORD:-rootpass}
+    volumes:
+      - chancery-arango:/var/lib/arangodb3
+    ports:
+      - "8529:8529"
+
+volumes:
+  chancery-pgdata:
+  chancery-arango:
