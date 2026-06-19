@@ -1,6 +1,6 @@
 # Chancery
 
-A sovereign **UK/EU public-sector procurement intelligence & capture platform** —
+A sovereign **public-sector procurement intelligence & capture platform** —
 the architecture of Govly (Opportunities · Awards · Signals · Capture · Automate),
 re-pointed at Crown Commercial Service frameworks, Find a Tender, MOD/DE&S, NHS,
 devolved government and EU TED.
